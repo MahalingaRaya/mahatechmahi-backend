@@ -1,10 +1,15 @@
 # Build stage
-FROM maven:3.8.5-openjdk-24 AS build
+FROM eclipse-temurin:24-jdk AS build
+WORKDIR /app
 COPY . .
-RUN mvn clean package -DskipTests
+# Make the Maven wrapper executable
+RUN chmod +x mvnw
+# Build the project using the wrapper
+RUN ./mvnw clean package -DskipTests
 
 # Run stage
-FROM openjdk:24-jdk-slim
-COPY --from=build /target/*.jar app.jar
+FROM eclipse-temurin:24-jdk
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
