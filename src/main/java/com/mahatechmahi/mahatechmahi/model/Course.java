@@ -19,6 +19,7 @@ public class Course {
 	private String title;
 	private String description; // We will use this as the quick "Hook"
 	private String category; // e.g., "Frontend", "Backend"
+	private String type; // hold project or tutorial
 
 	// --- Media & Content ---
 	private String imageUrl; // Thumbnail image link
@@ -119,4 +120,13 @@ public class Course {
 	public void setSourceCodeUrl(String sourceCodeUrl) {
 		this.sourceCodeUrl = sourceCodeUrl;
 	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
 }

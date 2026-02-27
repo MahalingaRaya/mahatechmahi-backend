@@ -54,6 +54,7 @@ public class CourseController {
 			course.setTitle(courseDetails.getTitle());
 			course.setDescription(courseDetails.getDescription());
 			course.setCategory(courseDetails.getCategory());
+			course.setType(courseDetails.getType());
 
 			// Media & Content
 			course.setImageUrl(courseDetails.getImageUrl());
