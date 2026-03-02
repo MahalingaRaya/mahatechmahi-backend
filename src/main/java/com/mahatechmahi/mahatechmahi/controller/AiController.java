@@ -23,11 +23,11 @@ import tools.jackson.databind.ObjectMapper;
 @CrossOrigin(origins = "*")
 public class AiController {
 
-	// 🛑 PASTE YOUR API KEY HERE:
-	private final String GEMINI_API_KEY = "AIzaSyDRdEqzaJl-A0keQMp7fBSX3CvA_etMBQw";
+	// 🛡️ Securely fetch the API key from Render's Environment Variables
+	private final String HF_API_KEY = System.getenv("HF_API_KEY");
 
-	private final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="
-			+ GEMINI_API_KEY;
+	// Using Hugging Face's API with Microsoft's conversational model
+	private final String HF_API_URL = "https://api.huggingface.co/models/microsoft/DialoGPT-large";
 
 	@PostMapping
 	public ResponseEntity<Map<String, String>> chatWithMahaBot(@RequestBody Map<String, String> request) {
@@ -35,45 +35,40 @@ public class AiController {
 		Map<String, String> result = new HashMap<>();
 
 		try {
-			// 🧠 The "Secret Brain" of Maha Bot!
-			String systemPrompt = "You are Maha Bot, the official AI teaching assistant for Maha Tech Mahi. "
-					+ "You help students learn Java, Spring Boot, and Full Stack development. "
-					+ "Be energetic, supportive, and brilliant. "
-					+ "IMPORTANT: If a student asks for the exact code answer, DO NOT give them the final code. "
-					+ "Instead, explain the logic and give them a hint so they learn how to figure it out themselves!";
+			// Check if the environment variable was found
+			if (HF_API_KEY == null || HF_API_KEY.isEmpty()) {
+				throw new IllegalStateException("Hugging Face API key environment variable is missing!");
+			}
 
-			String fullPrompt = systemPrompt + "\n\nStudent asks: " + userMessage;
+			// Cleanly format the JSON String for Hugging Face
+			String formattedUserMessage = userMessage.replace("\"", "\\\"");
+			String requestBody = "{\"inputs\": \"" + formattedUserMessage + "\"}";
 
-			// 🛡️ BULLETPROOF JSON BUILDING
 			RestTemplate restTemplate = new RestTemplate();
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.setBearerAuth(HF_API_KEY); // Securely pass the API key!
 
-			Map<String, Object> textNode = new HashMap<>();
-			textNode.put("text", fullPrompt);
+			HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
-			Map<String, Object> partsNode = new HashMap<>();
-			partsNode.put("parts", new Object[] { textNode });
+			// Send to Hugging Face API
+			ResponseEntity<String> response = restTemplate.postForEntity(HF_API_URL, entity, String.class);
 
-			Map<String, Object> bodyMap = new HashMap<>();
-			bodyMap.put("contents", new Object[] { partsNode });
-
-			HttpEntity<Map<String, Object>> entity = new HttpEntity<>(bodyMap, headers);
-
-			// Send to Gemini API
-			ResponseEntity<String> response = restTemplate.postForEntity(GEMINI_API_URL, entity, String.class);
+			System.out.println("🤖 RAW HUGGING FACE RESPONSE: " + response.getBody());
 
 			// Extract the text safely
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode root = mapper.readTree(response.getBody());
-			String aiResponse = root.path("candidates").get(0).path("content").path("parts").get(0).path("text")
-					.asText();
+			String aiResponse = "Maha Bot is thinking..."; // Default
+
+			if (root.isArray() && root.size() > 0) {
+				aiResponse = root.get(0).path("generated_text").asText();
+			}
 
 			result.put("reply", aiResponse);
 			return ResponseEntity.ok(result);
 
 		} catch (Exception e) {
-			// 🚨 THIS PRINTS THE EXACT ERROR TO RENDER LOGS!
 			System.err.println("❌ MAHA BOT ERROR: " + e.getMessage());
 			e.printStackTrace();
 
