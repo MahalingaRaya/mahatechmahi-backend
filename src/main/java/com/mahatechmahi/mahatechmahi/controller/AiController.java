@@ -23,11 +23,10 @@ import tools.jackson.databind.ObjectMapper;
 @CrossOrigin(origins = "*")
 public class AiController {
 
-	// 🛡️ Securely fetch the API key from Render's Environment Variables
 	private final String HF_API_KEY = System.getenv("HF_API_KEY");
 
-	// Using Hugging Face's NEW Router API with the Zephyr 7B model!
-	private final String HF_API_URL = "https://router.huggingface.co/hf-inference/models/HuggingFaceH4/zephyr-7b-beta";
+	// The NEW Universal Hugging Face Chat API Endpoint
+	private final String HF_API_URL = "https://router.huggingface.co/hf-inference/v1/chat/completions";
 
 	@PostMapping
 	public ResponseEntity<Map<String, String>> chatWithMahaBot(@RequestBody Map<String, String> request) {
@@ -35,34 +34,35 @@ public class AiController {
 		Map<String, String> result = new HashMap<>();
 
 		try {
-			// Check if the environment variable was found
 			if (HF_API_KEY == null || HF_API_KEY.isEmpty()) {
-				throw new IllegalStateException("Hugging Face API key environment variable is missing!");
+				throw new IllegalStateException("Hugging Face API key is missing!");
 			}
 
-			// Cleanly format the JSON String for Hugging Face
-			String formattedUserMessage = userMessage.replace("\"", "\\\"");
-			String requestBody = "{\"inputs\": \"" + formattedUserMessage + "\"}";
+			// Clean user input
+			String formattedUserMessage = userMessage.replace("\"", "\\\"").replace("\n", " ");
+
+			// NEW JSON format required by the Router API
+			String requestBody = "{\n" + "  \"model\": \"HuggingFaceH4/zephyr-7b-beta\",\n"
+					+ "  \"messages\": [{\"role\": \"user\", \"content\": \"" + formattedUserMessage + "\"}]\n" + "}";
 
 			RestTemplate restTemplate = new RestTemplate();
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
-			headers.setBearerAuth(HF_API_KEY); // Securely pass the API key!
+			headers.setBearerAuth(HF_API_KEY);
 
 			HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
-			// Send to Hugging Face API
+			// Send to API
 			ResponseEntity<String> response = restTemplate.postForEntity(HF_API_URL, entity, String.class);
+			System.out.println("🤖 RAW HF RESPONSE: " + response.getBody());
 
-			System.out.println("🤖 RAW HUGGING FACE RESPONSE: " + response.getBody());
-
-			// Extract the text safely
+			// Extract from NEW JSON Response structure
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode root = mapper.readTree(response.getBody());
-			String aiResponse = "Maha Bot is thinking..."; // Default
+			String aiResponse = "Maha Bot is thinking...";
 
-			if (root.isArray() && root.size() > 0) {
-				aiResponse = root.get(0).path("generated_text").asText();
+			if (root.has("choices") && root.path("choices").isArray()) {
+				aiResponse = root.path("choices").get(0).path("message").path("content").asText();
 			}
 
 			result.put("reply", aiResponse);
@@ -70,9 +70,9 @@ public class AiController {
 
 		} catch (Exception e) {
 			System.err.println("❌ MAHA BOT ERROR: " + e.getMessage());
-			e.printStackTrace();
 
-			result.put("reply", "Oops! Maha Bot is taking a quick nap. Please try again later.");
+			// NO MORE "TAKING A NAP". Print the literal exact error to the website screen!
+			result.put("reply", "Server Error: " + e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
 		}
 	}
