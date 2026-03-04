@@ -25,8 +25,8 @@ public class AiController {
 
 	private final String HF_API_KEY = System.getenv("HF_API_KEY");
 
-	// DIRECT MODEL ENDPOINT: Bypasses the Hugging Face Router completely!
-	private final String HF_API_URL = "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-7B-Instruct/v1/chat/completions";
+	// The ONLY working URL mandated by Hugging Face
+	private final String HF_API_URL = "https://router.huggingface.co/v1/chat/completions";
 
 	@PostMapping
 	public ResponseEntity<Map<String, String>> chatWithMahaBot(@RequestBody Map<String, String> request) {
@@ -40,7 +40,7 @@ public class AiController {
 
 			String formattedUserMessage = userMessage.replace("\"", "\\\"").replace("\n", " ");
 
-			// Using Qwen 2.5 - A powerful, completely free, open-source coding model
+			// Using Qwen 2.5 - Actively supported on the free router
 			String requestBody = "{\n" + "  \"model\": \"Qwen/Qwen2.5-7B-Instruct\",\n"
 					+ "  \"messages\": [{\"role\": \"user\", \"content\": \"" + formattedUserMessage + "\"}]\n" + "}";
 
