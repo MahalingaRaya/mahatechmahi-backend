@@ -26,9 +26,8 @@ public class AiController {
 	// 🛡️ Securely fetch the API key from Render's Environment Variables
 	private final String HF_API_KEY = System.getenv("HF_API_KEY");
 
-	// Using Hugging Face's API with Microsoft's conversational model
-	// Using Hugging Face's NEW Router API with Microsoft's conversational model
-	private final String HF_API_URL = "https://router.huggingface.co/hf-inference/models/microsoft/DialoGPT-large";
+	// Using Hugging Face's NEW Router API with the Zephyr 7B model!
+	private final String HF_API_URL = "https://router.huggingface.co/hf-inference/models/HuggingFaceH4/zephyr-7b-beta";
 
 	@PostMapping
 	public ResponseEntity<Map<String, String>> chatWithMahaBot(@RequestBody Map<String, String> request) {
