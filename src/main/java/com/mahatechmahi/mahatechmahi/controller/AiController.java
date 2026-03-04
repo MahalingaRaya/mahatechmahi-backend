@@ -25,8 +25,8 @@ public class AiController {
 
 	private final String HF_API_KEY = System.getenv("HF_API_KEY");
 
-	// The NEW Universal Hugging Face Chat API Endpoint
-	private final String HF_API_URL = "https://router.huggingface.co/v1/chat/completions";
+	// DIRECT MODEL ENDPOINT: Bypasses the Hugging Face Router completely!
+	private final String HF_API_URL = "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-7B-Instruct/v1/chat/completions";
 
 	@PostMapping
 	public ResponseEntity<Map<String, String>> chatWithMahaBot(@RequestBody Map<String, String> request) {
@@ -38,11 +38,10 @@ public class AiController {
 				throw new IllegalStateException("Hugging Face API key is missing!");
 			}
 
-			// Clean user input
 			String formattedUserMessage = userMessage.replace("\"", "\\\"").replace("\n", " ");
 
-			// NEW JSON format required by the Router API
-			String requestBody = "{\n" + "  \"model\": \"HuggingFaceH4/zephyr-7b-beta\",\n"
+			// Using Qwen 2.5 - A powerful, completely free, open-source coding model
+			String requestBody = "{\n" + "  \"model\": \"Qwen/Qwen2.5-7B-Instruct\",\n"
 					+ "  \"messages\": [{\"role\": \"user\", \"content\": \"" + formattedUserMessage + "\"}]\n" + "}";
 
 			RestTemplate restTemplate = new RestTemplate();
@@ -52,11 +51,9 @@ public class AiController {
 
 			HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
-			// Send to API
 			ResponseEntity<String> response = restTemplate.postForEntity(HF_API_URL, entity, String.class);
 			System.out.println("🤖 RAW HF RESPONSE: " + response.getBody());
 
-			// Extract from NEW JSON Response structure
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode root = mapper.readTree(response.getBody());
 			String aiResponse = "Maha Bot is thinking...";
@@ -70,8 +67,6 @@ public class AiController {
 
 		} catch (Exception e) {
 			System.err.println("❌ MAHA BOT ERROR: " + e.getMessage());
-
-			// NO MORE "TAKING A NAP". Print the literal exact error to the website screen!
 			result.put("reply", "Server Error: " + e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
 		}
