@@ -24,8 +24,6 @@ import tools.jackson.databind.ObjectMapper;
 public class AiController {
 
 	private final String HF_API_KEY = System.getenv("HF_API_KEY");
-
-	// The ONLY working URL mandated by Hugging Face
 	private final String HF_API_URL = "https://router.huggingface.co/v1/chat/completions";
 
 	@PostMapping
@@ -40,9 +38,17 @@ public class AiController {
 
 			String formattedUserMessage = userMessage.replace("\"", "\\\"").replace("\n", " ");
 
-			// Using Qwen 2.5 - Actively supported on the free router
-			String requestBody = "{\n" + "  \"model\": \"Qwen/Qwen2.5-7B-Instruct\",\n"
-					+ "  \"messages\": [{\"role\": \"user\", \"content\": \"" + formattedUserMessage + "\"}]\n" + "}";
+			// 🧠 THE SECRET BRAIN: Tell the AI exactly who it is!
+			String systemPrompt = "You are Maha Bot, the official AI teaching assistant for Maha Tech Mahi. "
+					+ "You help students learn Java, Spring Boot, and Full Stack development. "
+					+ "You must strictly identify yourself as Maha Bot. Never mention Qwen, Hugging Face, or Alibaba Cloud. "
+					+ "Be energetic, friendly, and supportive!";
+
+			// We now send TWO messages: The hidden system instructions, and the user's
+			// question
+			String requestBody = "{\n" + "  \"model\": \"Qwen/Qwen2.5-7B-Instruct\",\n" + "  \"messages\": [\n"
+					+ "    {\"role\": \"system\", \"content\": \"" + systemPrompt + "\"},\n"
+					+ "    {\"role\": \"user\", \"content\": \"" + formattedUserMessage + "\"}\n" + "  ]\n" + "}";
 
 			RestTemplate restTemplate = new RestTemplate();
 			HttpHeaders headers = new HttpHeaders();
@@ -50,9 +56,7 @@ public class AiController {
 			headers.setBearerAuth(HF_API_KEY);
 
 			HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
-
 			ResponseEntity<String> response = restTemplate.postForEntity(HF_API_URL, entity, String.class);
-			System.out.println("🤖 RAW HF RESPONSE: " + response.getBody());
 
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode root = mapper.readTree(response.getBody());
