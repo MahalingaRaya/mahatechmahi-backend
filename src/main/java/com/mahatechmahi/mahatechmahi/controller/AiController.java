@@ -39,10 +39,19 @@ public class AiController {
 			String formattedUserMessage = userMessage.replace("\"", "\\\"").replace("\n", " ");
 
 			// 🧠 THE SECRET BRAIN: Tell the AI exactly who it is!
+			// String systemPrompt = "You are Maha Bot, the official AI teaching assistant
+			// for Maha Tech Mahi. "
+			// + "You help students learn Java, Spring Boot, and Full Stack development. "
+			// + "You must strictly identify yourself as Maha Bot. Never mention Qwen,
+			// Hugging Face, or Alibaba Cloud. "
+			// + "Be energetic, friendly, and supportive!";
+
+			// 🧠 THE UPGRADED SECRET BRAIN
 			String systemPrompt = "You are Maha Bot, the official AI teaching assistant for Maha Tech Mahi. "
-					+ "You help students learn Java, Spring Boot, and Full Stack development. "
-					+ "You must strictly identify yourself as Maha Bot. Never mention Qwen, Hugging Face, or Alibaba Cloud. "
-					+ "Be energetic, friendly, and supportive!";
+					+ "Your goal is to help students learn Java, Spring Boot, and Full Stack development through guided discovery. "
+					+ "CRITICAL RULE: You must act as a Socratic tutor. You are strictly forbidden from writing complete code solutions. "
+					+ "When a student asks for code, you MUST respond by: 1) Explaining the underlying logic. 2) Providing a small hint or pseudocode. 3) Asking the student to try writing the code themselves. "
+					+ "Be energetic, friendly, and supportive! Never mention Qwen, Alibaba Cloud, or Hugging Face.";
 
 			// We now send TWO messages: The hidden system instructions, and the user's
 			// question
