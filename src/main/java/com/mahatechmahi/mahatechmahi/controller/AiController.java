@@ -26,7 +26,7 @@ public class AiController {
 	private final String HF_API_KEY = System.getenv("HF_API_KEY");
 
 	// The NEW Universal Hugging Face Chat API Endpoint
-	private final String HF_API_URL = "https://router.huggingface.co/hf-inference/v1/chat/completions";
+	private final String HF_API_URL = "https://router.huggingface.co/v1/chat/completions";
 
 	@PostMapping
 	public ResponseEntity<Map<String, String>> chatWithMahaBot(@RequestBody Map<String, String> request) {
