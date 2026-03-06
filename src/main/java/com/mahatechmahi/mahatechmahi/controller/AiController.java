@@ -23,8 +23,9 @@ import tools.jackson.databind.ObjectMapper;
 @CrossOrigin(origins = "*")
 public class AiController {
 
-	private final String HF_API_KEY = System.getenv("HF_API_KEY");
-	private final String HF_API_URL = "https://router.huggingface.co/v1/chat/completions";
+	// 🛡️ Fetching the ultra-reliable Groq API Key
+	private final String GROQ_API_KEY = System.getenv("GROQ_API_KEY");
+	private final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 	@PostMapping
 	public ResponseEntity<Map<String, String>> chatWithMahaBot(@RequestBody Map<String, String> request) {
@@ -32,40 +33,31 @@ public class AiController {
 		Map<String, String> result = new HashMap<>();
 
 		try {
-			if (HF_API_KEY == null || HF_API_KEY.isEmpty()) {
-				throw new IllegalStateException("Hugging Face API key is missing!");
+			if (GROQ_API_KEY == null || GROQ_API_KEY.isEmpty()) {
+				throw new IllegalStateException("Groq API key is missing from Render!");
 			}
 
 			String formattedUserMessage = userMessage.replace("\"", "\\\"").replace("\n", " ");
 
-			// 🧠 THE SECRET BRAIN: Tell the AI exactly who it is!
-			// String systemPrompt = "You are Maha Bot, the official AI teaching assistant
-			// for Maha Tech Mahi. "
-			// + "You help students learn Java, Spring Boot, and Full Stack development. "
-			// + "You must strictly identify yourself as Maha Bot. Never mention Qwen,
-			// Hugging Face, or Alibaba Cloud. "
-			// + "Be energetic, friendly, and supportive!";
-
-			// 🧠 THE UPGRADED SECRET BRAIN
-			String systemPrompt = "You are Maha Bot, the official AI teaching assistant for Maha Tech Mahi. "
+			// 🧠 The Socratic Tutor Brain
+			String systemPrompt = "You are Maha Tech Mahi, the official AI teaching assistant for Maha Tech Mahi. "
 					+ "Your goal is to help students learn Java, Spring Boot, and Full Stack development through guided discovery. "
 					+ "CRITICAL RULE: You must act as a Socratic tutor. You are strictly forbidden from writing complete code solutions. "
 					+ "When a student asks for code, you MUST respond by: 1) Explaining the underlying logic. 2) Providing a small hint or pseudocode. 3) Asking the student to try writing the code themselves. "
-					+ "Be energetic, friendly, and supportive! Never mention Qwen, Alibaba Cloud, or Hugging Face.";
+					+ "Be energetic, friendly, and supportive!";
 
-			// We now send TWO messages: The hidden system instructions, and the user's
-			// question
-			String requestBody = "{\n" + "  \"model\": \"Qwen/Qwen2.5-7B-Instruct\",\n" + "  \"messages\": [\n"
+			// Using Groq's lightning-fast Llama 3 (8 Billion parameter) model
+			String requestBody = "{\n" + "  \"model\": \"llama3-8b-8192\",\n" + "  \"messages\": [\n"
 					+ "    {\"role\": \"system\", \"content\": \"" + systemPrompt + "\"},\n"
 					+ "    {\"role\": \"user\", \"content\": \"" + formattedUserMessage + "\"}\n" + "  ]\n" + "}";
 
 			RestTemplate restTemplate = new RestTemplate();
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
-			headers.setBearerAuth(HF_API_KEY);
+			headers.setBearerAuth(GROQ_API_KEY);
 
 			HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
-			ResponseEntity<String> response = restTemplate.postForEntity(HF_API_URL, entity, String.class);
+			ResponseEntity<String> response = restTemplate.postForEntity(GROQ_API_URL, entity, String.class);
 
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode root = mapper.readTree(response.getBody());
