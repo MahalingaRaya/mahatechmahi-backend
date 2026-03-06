@@ -59,7 +59,7 @@ public class AiController {
 
 			// 🚀 3. Build the Groq Request safely
 			Map<String, Object> groqRequest = new HashMap<>();
-			groqRequest.put("model", "llama3-8b-8192");
+			groqRequest.put("model", "llama3-8b-instant");
 			groqRequest.put("messages", messages);
 
 			String requestBody = mapper.writeValueAsString(groqRequest);
